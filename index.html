@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brownie Badge Planner - Troop 5641</title>
+<style>
+  :root{
+    --brown:#7a4a22;--brown-d:#5e3818;--cream:#fbf6ec;--card:#fff;--tan:#e6d4b8;--ink:#2e2a25;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--cream);color:var(--ink);line-height:1.5;padding-bottom:60px}
+  header{background:linear-gradient(135deg,#7a4a22,#5e3818);color:#fff;padding:24px 18px 28px;text-align:center}
+  header h1{font-size:24px;letter-spacing:.5px}
+  header p{opacity:.9;font-size:13px;margin-top:6px}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 14px}
+  .controls{position:sticky;top:0;z-index:20;background:var(--cream);padding:12px 0 8px;border-bottom:2px solid var(--tan);margin-bottom:6px}
+  #search{width:100%;padding:11px 14px;font-size:16px;border:2px solid var(--tan);border-radius:12px;background:#fff}
+  #search:focus{outline:none;border-color:var(--brown)}
+  .cats{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .cat{border:2px solid var(--tan);background:#fff;color:var(--brown-d);border-radius:20px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer}
+  .cat.active{background:var(--brown);color:#fff;border-color:var(--brown)}
+  .count{text-align:center;font-size:13px;color:#8a7a63;margin:10px 0}
+  .catblock{margin:18px 0 4px}
+  .cathead{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800;color:var(--brown-d);background:var(--tan);padding:7px 14px;border-radius:10px;margin-bottom:12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .badge{background:var(--card);border:2px solid var(--tan);border-radius:14px;overflow:hidden;cursor:pointer;transition:.15s;display:flex;flex-direction:column}
+  .badge:hover{border-color:var(--brown)}
+  .badge.open{border-color:var(--brown);box-shadow:0 4px 16px rgba(122,74,34,.18);grid-column:1/-1}
+  .bhead{display:flex;flex-direction:column;align-items:center;padding:12px 10px;text-align:center;gap:8px;position:relative}
+  .badge.open .bhead{flex-direction:row;text-align:left;gap:14px}
+  .icon{width:78px;height:72px;object-fit:contain;flex:0 0 auto}
+  .badge.open .icon{width:92px;height:86px}
+  .bt h3{font-size:13.5px;color:var(--brown-d);line-height:1.2}
+  .badge.open .bt h3{font-size:17px}
+  .earned-dot{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;border:2px solid var(--tan);background:#fff;font-size:13px;display:flex;align-items:center;justify-content:center}
+  .badge.earned .earned-dot{background:#4a8a4a;border-color:#4a8a4a;color:#fff}
+  .badge.earned .icon{opacity:.55}
+  .badge.earned{background:#f2f8f0}
+  .badge.goal{border-color:#e0a92b;box-shadow:0 0 0 2px #f6e2ad inset}
+  .goaltag{position:absolute;top:8px;left:8px;background:#e0a92b;color:#4a3300;font-size:9px;font-weight:800;padding:2px 6px;border-radius:20px;letter-spacing:.4px}
+  .badge.planned{border-color:#3d8ac0;box-shadow:0 0 0 2px #cfe6f5 inset}
+  .plantag{position:absolute;top:8px;left:8px;background:#3d8ac0;color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:20px;letter-spacing:.4px}
+  .body{display:none;padding:0 16px 16px;width:100%}
+  .badge.open .body{display:block}
+  .sub{font-size:12.5px;color:#7a6a52;margin:2px 0 8px;font-style:italic}
+  .activity{background:#eef6ee;border:1px solid #cfe6cf;border-radius:9px;padding:8px 11px;font-size:13px;color:#2e5e2e;margin-bottom:12px}
+  .activity b{color:#1f4a1f}
+  .steps{list-style:none;counter-reset:s}
+  .steps li{counter-increment:s;position:relative;padding:8px 0 8px 38px;border-top:1px dashed var(--tan)}
+  .steps li:before{content:counter(s);position:absolute;left:0;top:8px;width:25px;height:25px;background:var(--brown);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+  .steps li b{display:block;font-size:13.5px;margin-bottom:2px}
+  .steps li .ideas span{display:block;padding-left:14px;position:relative;font-size:12.5px;color:#4a4235;margin-top:3px}
+  .steps li .ideas span:before{content:"\2022";position:absolute;left:0;color:#4a8a4a;font-weight:700}
+  .earnbtn{margin-top:12px;padding:8px 14px;border:2px solid #4a8a4a;background:#fff;color:#4a8a4a;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer}
+  .badge.earned .earnbtn{background:#4a8a4a;color:#fff}
+  .note{background:#fff8e8;border:1px solid #f0e0b8;border-radius:10px;padding:11px 13px;font-size:12px;color:#6d5a30;margin-top:22px}
+  footer{text-align:center;font-size:11px;color:#8a7a63;margin-top:22px;padding:0 16px}
+  .earnedcount{font-size:12px;color:#4a8a4a;font-weight:700}
+</style>
+</head>
+<body>
+<header>
+  <h1>🤎 Brownie Badge Planner</h1>
+  <p>Troop 5641 &bull; 2025-26 &bull; Tap a badge for the 5 steps + activity ideas &bull; Tap ✓ to mark earned</p>
+</header>
+<div class="wrap">
+  <div class="controls">
+    <input id="search" type="text" placeholder="🔍 Search badges (camping, cookies, robots)...">
+    <div class="cats" id="cats"></div>
+  </div>
+  <div class="count" id="count"></div>
+  <div id="content"></div>
+  <div class="note">
+    <b>📋 Leader note:</b> Every Brownie badge has <b>5 steps</b>. Badge images are official GSUSA artwork; the activity ideas are practical, Brownie-level suggestions. Confirm exact requirements in your Volunteer Toolkit (VTK) before awarding. Your "earned" check-offs save on this device.
+  </div>
+  <footer>Made for Liz &amp; Katie &bull; Girl-led planning 🌸 &bull; Badge art ©GSUSA</footer>
+</div>
+<script>
+const CATS=["Animals & Nature","Art & Imagination","Balanced Living","Leadership & Your Future","Outdoor Adventure","Sports & Recreation","Technology & Innovation","Your World Near & Far","Awards"];
+const IC="badge-icons/";
+const B=[
+// Animals & Nature
+{n:"Pets",c:"Animals & Nature",img:"pets",s:"Caring for animals.",st:[["Learn about pets",["Talk about pets & their needs","Share about your own pet"]],["Learn care basics",["Practice feed/water/exercise routine","Learn to pet animals safely"]],["Keep pets healthy",["Talk about vet visits","Make a pet care chart"]],["Help animals in need",["Make shelter toys/blankets","Collect pet supplies to donate"]],["Share pet care",["Make a pet care poster","Teach how to approach a dog safely"]]]},
+{n:"Shapes in Nature",c:"Animals & Nature",img:"shapes-in-nature",s:"Finding math shapes outside.",st:[["Hunt for shapes",["Find circles, triangles in nature","Photograph shapes outside"]],["Learn about symmetry",["Fold leaves to find symmetry","Spot symmetrical bugs/flowers"]],["Explore patterns",["Find patterns in petals/shells","Make a nature pattern rubbing"]],["Build with shapes",["Make art from natural shapes","Build a shape sculpture with sticks"]],["Share shapes",["Make a nature shape collage","Teach a shape you found"]]]},
+{n:"Numbers in Nature",c:"Animals & Nature",img:"numbers-in-nature",s:"Counting & math outdoors.",st:[["Count in nature",["Count petals, legs, rings","Tally birds or bugs seen"]],["Measure things",["Measure leaves/sticks","Compare big vs small"]],["Find number patterns",["Count flower petals (often patterns)","Look for pairs & groups"]],["Sort & graph",["Sort leaves by size","Make a simple nature graph"]],["Share numbers",["Present your nature counts","Make a counting nature book"]]]},
+{n:"Design with Nature",c:"Animals & Nature",img:"design-with-nature",s:"Nature-inspired design.",st:[["Look at nature designs",["Study how animals build","Look at webs, nests, hives"]],["Get inspired",["Sketch a design from nature","Talk about biomimicry (kid version)"]],["Design something",["Design a bug hotel or nest","Draw a nature-inspired invention"]],["Build it",["Make your design with materials","Test if it works"]],["Share your design",["Show & explain your design","Make a design poster"]]]},
+{n:"Bugs",c:"Animals & Nature",img:"bugs",s:"Exploring insects.",st:[["Learn what a bug is",["Count insect legs/parts","Sort bug vs not-a-bug"]],["Go on a bug hunt",["Search with magnifiers","Log bugs on a chart"]],["Learn how bugs help",["Talk about bees & pollination","Learn what worms do"]],["Make a bug home",["Build a bug hotel","Start a worm observation jar"]],["Share bug facts",["Make a favorite-bug poster","Teach a bug fact"]]]},
+// Art & Imagination
+{n:"Outdoor Art Creator",c:"Art & Imagination",img:"outdoor-art-creator",s:"Making art outdoors.",st:[["Find outdoor inspiration",["Take a nature art walk","Collect natural materials"]],["Try nature paint/tools",["Paint with mud/berries","Make brushes from nature"]],["Create land art",["Make a leaf/stone mandala","Build a stick sculpture"]],["Capture the outdoors",["Sketch a scene outside","Do a nature rubbing"]],["Share your art",["Host an outdoor art show","Photograph your creations"]]]},
+{n:"Art and Design",c:"Art & Imagination",img:"art-and-design",s:"Elements of art & design.",st:[["Explore color",["Mix colors, make a color wheel","Talk about warm/cool colors"]],["Explore line & shape",["Draw different line types","Make a shape design"]],["Explore texture",["Make texture rubbings","Create a textured collage"]],["Design something",["Design a pattern or poster","Plan a piece with the elements"]],["Show your art",["Display your work","Explain your design choices"]]]},
+{n:"Create and Innovate",c:"Art & Imagination",img:"create-and-innovate",s:"Inventing & problem-solving.",st:[["Learn what innovation is",["Talk about inventions we use","Spot problems to solve"]],["Brainstorm ideas",["List wild invention ideas","Sketch your favorite"]],["Design a solution",["Design something that helps","Plan your materials"]],["Build a prototype",["Make it from recyclables","Test & improve it"]],["Share your invention",["Pitch your idea","Make an invention poster"]]]},
+{n:"Household Elf",c:"Art & Imagination",img:"household-elf",s:"Helping out at home.",st:[["Why chores matter",["Talk about teamwork at home","List age-right chores"]],["Help in the kitchen",["Set a table","Make a no-cook snack"]],["Keep spaces tidy",["Sort laundry","Organize a shelf/bin"]],["Save & reuse",["Turn off lights/water","Reuse jars for storage"]],["Share helper skills",["Make a chore chart","Teach a home tip"]]]},
+{n:"Craft and Tinker",c:"Art & Imagination",img:"craft-and-tinker",s:"Making & building things.",st:[["Explore materials",["Sort craft/tinker supplies","Talk about tools"]],["Try a craft",["Make a simple craft","Try weaving or sewing basics"]],["Tinker & take apart",["Safely explore how things work","Build with recyclables"]],["Make something useful",["Craft a gift or tool","Fix or upcycle something"]],["Share your make",["Display your creation","Teach your craft"]]]},
+{n:"Dancer",c:"Art & Imagination",img:"dancer",s:"Learn & perform a dance.",st:[["Explore dance types",["Try ballet, hip-hop, folk","Talk about dance worldwide"]],["Warm up",["Do a stretch routine","Practice good posture"]],["Learn moves",["Learn a short combo","Make up your own move"]],["Choreograph",["Put moves to music","Make a mini routine"]],["Perform",["Perform for the troop","Teach the dance"]]]},
+{n:"My Family Story",c:"Art & Imagination",img:"my-family-story",s:"Sharing your family history.",st:[["Learn about family",["Talk about your family members","Make a simple family tree"]],["Collect stories",["Interview a family member","Ask about traditions"]],["Explore heritage",["Learn where family is from","Try a family recipe/craft"]],["Tell your story",["Make a family scrapbook page","Draw a family tradition"]],["Share your story",["Present a family story","Share a family photo/object"]]]},
+// Balanced Living
+{n:"Me Time",c:"Balanced Living",img:"me-time",s:"Mindfulness & feeling good.",st:[["What 'me time' means",["Talk about rest & quiet time","Draw what makes you calm"]],["Move to feel good",["Try kid yoga/stretching","Dance-and-freeze break"]],["Calm your mind",["Do balloon breaths","1-minute listening game"]],["Make a calm spot",["Design a calm corner","Make a glitter jar"]],["Share a tip",["Teach a calming trick","Make a calm-down bookmark"]]]},
+{n:"Snacks",c:"Balanced Living",img:"snacks",s:"Making healthy snacks.",st:[["Learn about snacks",["Talk about healthy vs treat","Sort food groups"]],["Make a fruit/veggie snack",["Build fruit kebabs","Make ants-on-a-log"]],["Make a fun mix",["Mix your own trail mix","Make a yogurt parfait"]],["Snack safety & clean-up",["Practice hand washing","Learn kitchen safety"]],["Share a snack",["Make snacks for the troop","Share a snack recipe"]]]},
+{n:"Budget Builder",c:"Balanced Living",img:"budget-builder",s:"Learning about money & budgets.",st:[["Learn about money",["Identify coins & bills","Practice making change"]],["Needs vs wants",["Sort needs and wants","Talk about choices"]],["Make a budget",["Plan a pretend budget","Choose how to spend"]],["Save money",["Make a savings jar","Set a savings goal"]],["Share money smarts",["Make a money tips poster","Teach counting money"]]]},
+{n:"My Own Budget",c:"Balanced Living",img:"my-own-budget",s:"Managing your own money.",st:[["Track your money",["List money you get","Talk about earning"]],["Set a goal",["Pick something to save for","Make a goal chart"]],["Make spending choices",["Decide save vs spend","Compare prices"]],["Practice a budget",["Budget for a pretend outing","Adjust your plan"]],["Share what you learned",["Show your budget plan","Give a saving tip"]]]},
+{n:"Brownie First Aid",c:"Balanced Living",img:"brownie-first-aid",s:"What to do in an emergency.",st:[["What first aid is",["Talk about staying calm","Meet a nurse/EMT"]],["Get help",["Practice calling 911 (pretend)","Memorize an emergency contact"]],["Treat small injuries",["Practice bandaging","Make a mini first aid kit"]],["Bigger problems",["Learn stop-drop-roll","What to do for a bee sting"]],["Share safety",["Teach a first aid tip","Make a safety poster"]]]},
+{n:"Making Friends",c:"Balanced Living",img:"making-friends",s:"Being a good friend.",st:[["What makes a good friend",["Brainstorm friend qualities","Read a friendship story"]],["Meet someone new",["Play a name/icebreaker game","Interview a troop-mate"]],["Show you care",["Make friendship bracelets","Practice compliments"]],["Solve a friend problem",["Act out making up","Learn 'I feel' words"]],["Celebrate friendship",["Friendship circle & song","Group friendship craft"]]]},
+{n:"My Great Day",c:"Balanced Living",img:"my-great-day",s:"Planning & managing your day.",st:[["Parts of a day",["Make a day chart","Talk about routines"]],["Good manners",["Practice please/thank you","Manners matching game"]],["Manage time",["Make a daily schedule","Time tasks with a timer"]],["Handle feelings",["Feelings faces chart","Practice calming down"]],["Plan a great day",["Draw your dream day","Share your plan"]]]},
+{n:"Home Scientist",c:"Balanced Living",img:"home-scientist",s:"Kitchen chemistry experiments.",st:[["Think like a scientist",["Make a hypothesis","Practice observing"]],["Mix a reaction",["Baking soda + vinegar","Make fizzy colors"]],["Solids & liquids",["Make oobleck","Test what dissolves"]],["Grow or change",["Grow crystals","Color-changing celery"]],["Share findings",["Present an experiment","Make a lab notebook page"]]]},
+// Leadership & Your Future
+{n:"My Cookie Customers",c:"Leadership & Your Future",img:"my-cookie-customers",s:"Cookie program: customers.",st:[["Know your customers",["Talk about who buys cookies","Practice a friendly greeting"]],["Make a pitch",["Practice a cookie speech","Role-play a booth"]],["Learn the cookies",["Match cookies to facts","Make a menu card"]],["Safety & manners",["Learn booth buddy rules","Practice thank you"]],["Sell cookies",["Work a booth shift","Track your goal"]]]},
+{n:"Cookie Decision Maker",c:"Leadership & Your Future",img:"cookie-decision-maker",s:"Cookie goals & choices.",st:[["Set a cookie goal",["Pick a troop goal","Make a goal tracker"]],["Make a plan",["Decide where to sell","Plan booth times"]],["Make choices with money",["Vote on earnings use","Budget the goal"]],["Solve a problem",["Handle a sold-out flavor","Practice change-making"]],["Reflect & share",["Share what worked","Celebrate the goal"]]]},
+{n:"Digital Leadership",c:"Leadership & Your Future",img:"digital-leadership",s:"Being safe & kind online.",st:[["What digital means",["Talk about screens/apps","Good vs not-good online"]],["Be safe online",["Learn to keep info private","What to do if uncomfortable"]],["Be kind online",["Talk about digital kindness","Practice nice messages"]],["Balance screens",["Talk about screen breaks","Plan offline fun"]],["Share digital smarts",["Make an online safety poster","Teach a tip"]]]},
+{n:"Budding Entrepreneur",c:"Leadership & Your Future",img:"budding-entrepreneur",s:"Starting a business idea.",st:[["What's an entrepreneur",["Talk about businesses","Spot needs to fill"]],["Get an idea",["Brainstorm a business","Pick your favorite"]],["Plan it",["Design your product","Set a pretend price"]],["Make & market",["Make a sample","Design an ad/sign"]],["Share your business",["Pitch to the troop","Make a business poster"]]]},
+{n:"STEM Career Exploration",c:"Leadership & Your Future",img:"stem-career-exploration",s:"Exploring STEM jobs.",st:[["What is STEM",["Talk about science/tech jobs","Sort STEM careers"]],["Meet a STEM person",["Interview a STEM worker","Watch a STEM job video"]],["Try a STEM task",["Do a mini experiment","Build something"]],["Imagine your future",["Draw yourself in a STEM job","Talk about what you'd invent"]],["Share STEM",["Make a STEM careers poster","Teach a STEM fact"]]]},
+// Outdoor Adventure
+{n:"Letterboxer",c:"Outdoor Adventure",img:"letterboxer",s:"Outdoor treasure hunting.",st:[["What letterboxing is",["Talk about clues & boxes","Look at stamps/logbooks"]],["Make your stamp",["Carve a foam stamp","Design a troop stamp"]],["Follow clues",["Practice directions/paces","Read a simple map"]],["Go on a hunt",["Follow a clue trail","Stamp your logbook"]],["Make a hunt",["Hide a box & write clues","Swap hunts"]]]},
+{n:"Eco Friend",c:"Outdoor Adventure",img:"eco-friend",s:"Taking care of nature.",st:[["What nature needs",["Talk about clean air/water","Spot nature nearby"]],["Reduce & reuse",["Sort recycling","Craft from recyclables"]],["Care for habitats",["Build a bird feeder","Plant for pollinators"]],["Save resources",["Water/energy reminders","Track a no-waste day"]],["Share eco tips",["Make an eco pledge","Teach a younger group"]]]},
+{n:"Hiker",c:"Outdoor Adventure",img:"hiker",s:"Going on a real hike.",st:[["Get ready to hike",["Learn hiking essentials","Pack a hike backpack"]],["Trail safety",["Practice stay-together rules","What to do if lost"]],["Dress for the trail",["Weather-right clothes","Comfy shoes"]],["Take a hike",["Hike a nature trail","Trail scavenger hunt"]],["Care for nature",["Leave no trace","Pack out trash"]]]},
+{n:"Brownie Trail Adventure",c:"Outdoor Adventure",img:"brownie-trail-adventure",s:"Outdoor skills adventure.",st:[["Plan the adventure",["Pick a trail/park","Make a plan & list"]],["Learn outdoor skills",["Use a compass (kid version)","Identify plants/animals"]],["Prep your gear",["Pack the essentials","Dress for weather"]],["Go on the adventure",["Explore the trail","Do a nature activity"]],["Reflect & share",["Share your favorite part","Make an adventure journal"]]]},
+{n:"Cabin Camper",c:"Outdoor Adventure",img:"cabin-camper",s:"Camping skills + overnight.",st:[["Plan a camp trip",["Make a packing list","Choose camp meals"]],["Camp skills",["Use a flashlight/lantern","Roll a sleeping bag"]],["Cook a camp snack",["Make s'mores/trail mix","Try no-cook foods"]],["Camp fun",["Learn camp songs/games","Night walk or stargaze"]],["Sleep at camp",["Overnight in a cabin","Practice camp kapers"]]]},
+// Sports & Recreation
+{n:"Fair Play",c:"Sports & Recreation",img:"fair-play",s:"Teamwork & playing fair.",st:[["What fair play means",["Talk about rules","List fair vs unfair"]],["Play a team game",["Cooperative/relay game","Practice turns"]],["Be a good sport",["Practice cheering others","Win & lose kindly"]],["Team decisions",["Vote on an activity","Solve a puzzle together"]],["Share fair play",["Teach a fair game","Make a team rules poster"]]]},
+{n:"Making Games",c:"Sports & Recreation",img:"making-games",s:"Inventing your own games.",st:[["Explore games",["Play different game types","Talk about rules"]],["Get a game idea",["Brainstorm a new game","Pick your favorite"]],["Make the rules",["Write simple rules","Decide how to win"]],["Build & test",["Make game pieces","Test & fix it"]],["Share your game",["Teach the troop your game","Host a game day"]]]},
+{n:"Senses",c:"Sports & Recreation",img:"senses",s:"How your body senses the world.",st:[["The 5 senses",["Match senses to body parts","When each sense helps"]],["Test sight",["Optical illusions","I-spy details"]],["Taste & smell",["Blind taste/smell game","How smell affects taste"]],["Touch & hearing",["Mystery touch box","Guess sounds"]],["Share a senses activity",["Set up a senses station","Make a senses booklet"]]]},
+{n:"Outdoor Adventurer",c:"Sports & Recreation",img:"outdoor-adventurer",s:"Outdoor recreation fun.",st:[["Explore outdoor activities",["Talk about outdoor sports","Pick one to try"]],["Get ready",["Learn the gear","Dress for it"]],["Learn safety",["Outdoor safety rules","Buddy system"]],["Try the adventure",["Do the outdoor activity","Practice a skill"]],["Share your adventure",["Tell about your experience","Encourage a friend to try"]]]},
+{n:"Brownie Snow or Climbing Adventure",c:"Sports & Recreation",img:"brownie-snow-climbing",s:"Snow or climbing fun.",st:[["Pick your adventure",["Choose snow or climbing","Learn what to expect"]],["Learn the gear",["Talk about safety gear","Dress right"]],["Safety first",["Learn the safety rules","Warm-up/stretch"]],["Try it",["Do the snow/climbing activity","Practice a skill"]],["Share it",["Tell about your adventure","Make an adventure poster"]]]},
+// Technology & Innovation
+{n:"Automotive Design",c:"Technology & Innovation",img:"automotive-design",s:"Designing cars.",st:[["Explore car design",["Look at car shapes","Talk about what cars need"]],["Learn design basics",["Sketch a car","Talk about aerodynamics (kid)"]],["Design your car",["Draw your dream car","Choose features"]],["Model it",["Build a model car","Test rolling it"]],["Share your design",["Show your car design","Explain your choices"]]]},
+{n:"Automotive Engineering",c:"Technology & Innovation",img:"automotive-engineering",s:"How cars work.",st:[["Car parts",["Learn basic car parts","Match parts to jobs"]],["How cars move",["Talk about wheels/axles","Test a rolling toy car"]],["Engineering challenge",["Build a car that rolls far","Test & measure"]],["Improve it",["Change your design","Re-test"]],["Share",["Show your car works","Explain what you changed"]]]},
+{n:"Automotive Manufacturing",c:"Technology & Innovation",img:"automotive-manufacturing",s:"How cars are made.",st:[["What manufacturing is",["Talk about assembly lines","How things are made in steps"]],["Plan a process",["List build steps in order","Assign jobs"]],["Make an assembly line",["Build cars as a team line","Each does one step"]],["Improve the line",["Find a faster way","Fix a problem"]],["Share",["Show your assembly line","Talk about teamwork"]]]},
+{n:"Coding Basics",c:"Technology & Innovation",img:"coding-basics",s:"Intro to coding.",st:[["What code is",["Talk about apps as code","Spot patterns"]],["Sequences",["Order steps (brush teeth)","Unplugged coding cards"]],["Find a bug",["Fix a wrong step","Debug the dance"]],["Code something",["Code a friend through a maze","Draw an arrow-code path"]],["Share",["Teach a coding game","Make a coding poster"]]]},
+{n:"Digital Game Design",c:"Technology & Innovation",img:"digital-game-design",s:"Designing a game.",st:[["What makes a game",["Talk about favorite games","List game parts"]],["Design your game",["Sketch your game idea","Make the rules"]],["Make characters/levels",["Draw characters","Design a level"]],["Build & test",["Make a paper prototype","Test with friends"]],["Share your game",["Show your game design","Get feedback"]]]},
+{n:"App Development",c:"Technology & Innovation",img:"app-development",s:"Designing a helpful app.",st:[["What apps do",["Talk about helpful apps","Spot a problem an app could solve"]],["Plan your app",["Decide what it does","Who it helps"]],["Design screens",["Draw your app screens","Plan the buttons"]],["Test your idea",["Show your paper app","Get feedback"]],["Share your app",["Pitch your app","Make an app poster"]]]},
+{n:"Cybersecurity Basics",c:"Technology & Innovation",img:"cybersecurity-basics",s:"Staying safe online.",st:[["What cybersecurity is",["Talk about online safety","Why we protect info"]],["Strong passwords",["Make a strong password","Why we keep them secret"]],["Spot tricks",["Learn about scams (kid)","What not to click"]],["Protect info",["What info to keep private","Ask an adult when unsure"]],["Share safety",["Make a safety poster","Teach a tip"]]]},
+{n:"Cybersecurity Safeguards",c:"Technology & Innovation",img:"cybersecurity-safeguards",s:"Protecting digital info.",st:[["What needs protecting",["Talk about private data","Devices we protect"]],["Learn safeguards",["Locks/passwords/logout","Why updates help"]],["Practice safe habits",["Log out routine","Don't share passwords"]],["Spot risks",["Find risky situations","What to do about them"]],["Share",["Make a safeguard checklist","Teach a habit"]]]},
+{n:"Cybersecurity Investigator",c:"Technology & Innovation",img:"cybersecurity-investigator",s:"Solving digital mysteries.",st:[["Be an investigator",["Talk about digital clues","How problems get solved"]],["Spot a problem",["Find something suspicious","Ask good questions"]],["Investigate",["Follow the clues","Figure out what happened"]],["Fix & prevent",["Suggest a fix","How to prevent it"]],["Share findings",["Present your case","Teach a lesson learned"]]]},
+{n:"Computer Expert",c:"Technology & Innovation",img:"computer-expert",s:"How computers work.",st:[["Parts of a computer",["Name the main parts","Match parts to jobs"]],["How computers work",["Input/output game","How they store info"]],["Get comfortable",["Practice mouse/keyboard","Open & save a file"]],["Create something",["Type a story","Make simple digital art"]],["Share",["Show what you made","Teach a computer tip"]]]},
+{n:"Leap Bot Design Challenge",c:"Technology & Innovation",img:"leap-bot-design",s:"Build a jumping bot.",st:[["Learn the challenge",["Talk about how things jump","Look at springy designs"]],["Design your leap bot",["Sketch your bot","Pick materials"]],["Build it",["Make your jumping bot","Test the jump"]],["Improve it",["Change to jump higher","Re-test"]],["Share",["Show your leap bot","Explain your design"]]]},
+{n:"Fling Flyer Design Challenge",c:"Technology & Innovation",img:"fling-flyer-design",s:"Build a flying glider.",st:[["Learn about flight",["Talk about how things fly","Look at glider shapes"]],["Design your flyer",["Sketch your flyer","Pick materials"]],["Build it",["Make your fling flyer","Test the flight"]],["Improve it",["Change to fly farther","Re-test"]],["Share",["Show your flyer","Explain what worked"]]]},
+{n:"Race Car Design Challenge",c:"Technology & Innovation",img:"race-car-design",s:"Build a fast car.",st:[["Learn the challenge",["Talk about speed & wheels","Look at race car shapes"]],["Design your car",["Sketch your car","Pick materials"]],["Build it",["Make your race car","Test how far it rolls"]],["Improve it",["Change to go faster","Re-test"]],["Share",["Race your car","Explain your design"]]]},
+{n:"Programming Robots",c:"Technology & Innovation",img:"programming-robots",s:"How robots think & move.",st:[["What robots do",["Robots that help people","Robot vs not-a-robot"]],["Be the robot",["Give step-by-step 'code'","Program a friend"]],["Sensors",["Blindfold-sensor game","How robots 'see'"]],["Movement plan",["Arrow-code a maze","Code through a maze"]],["Share",["Design a dream robot","Teach a coding game"]]]},
+{n:"Designing Robots",c:"Technology & Innovation",img:"designing-robots",s:"Designing a robot.",st:[["What robots need",["Talk about robot jobs","Parts a robot needs"]],["Get an idea",["Pick a job for your robot","Sketch it"]],["Design your robot",["Draw the details","Label the parts"]],["Model it",["Build a robot model","Explain how it works"]],["Share",["Show your robot design","Talk about its job"]]]},
+{n:"Showcasing Robots",c:"Technology & Innovation",img:"showcasing-robots",s:"Presenting robots.",st:[["Learn about showcasing",["Why we share our work","Look at robot demos"]],["Prepare your robot",["Pick a robot to show","Plan what to say"]],["Practice presenting",["Rehearse your demo","Practice answering questions"]],["Showcase it",["Present to the troop","Demo how it works"]],["Reflect",["Talk about what went well","Give a tip to others"]]]},
+// Your World Near & Far
+{n:"Celebrating Community",c:"Your World Near & Far",img:"celebrating-community",s:"Your neighborhood & cultures.",st:[["Explore community",["Map your neighborhood","Who helps the community"]],["Learn a tradition",["Share a family tradition","Try a cultural craft"]],["Meet a helper",["Invite a community helper","Write thank-you notes"]],["Join a celebration",["Plan a cultural sharing","Learn a song/dance"]],["Share",["Make a community collage","Present a tradition"]]]},
+{n:"Democracy for Brownies",c:"Your World Near & Far",img:"democracy-for-brownies",s:"How communities decide.",st:[["What democracy is",["Talk about voting/fairness","Read about a leader"]],["Practice voting",["Vote on an activity","Count votes"]],["Learn about leaders",["Talk about local leaders","Write to a leader"]],["Speak up",["Pick a troop cause","Make a campaign poster"]],["Share",["Teach how voting works","Hold a troop election"]]]},
+{n:"Brownie Girl Scout Way",c:"Your World Near & Far",img:"brownie-girl-scout-way",s:"Traditions & ceremonies.",st:[["Learn traditions",["Learn Promise & Law","Friendship squeeze"]],["Sing GS songs",["Learn 'Make New Friends'","Sing-along circle"]],["Make a treat",["Make s'mores","Try a campfire snack"]],["Do a ceremony",["Flag/candle ceremony","Plan investiture"]],["Keep traditions going",["Teach a younger girl","Start a troop tradition"]]]},
+{n:"Space Science Adventurer",c:"Your World Near & Far",img:"space-science-adventurer",s:"Stars, moon & planets.",st:[["Explore the sky",["Day vs night sky","Spot the moon"]],["Learn the moon",["Moon-phase craft (cookies!)","Why it changes"]],["Discover planets",["Planet order craft","One fact per planet"]],["Look at stars",["Constellation card","Learn the Big Dipper"]],["Share",["Build a solar system model","Present a space fact"]]]},
+// Awards
+{n:"My Promise, My Faith Year 1",c:"Awards",img:"my-promise-my-faith-1",s:"Connecting faith & the Promise.",st:[["Learn the Promise & Law",["Read the Girl Scout Law","Talk about the lines"]],["Pick a Law line",["Choose a line that matters","Talk about why"]],["Connect to your faith/values",["Find a matching value","Share with family"]],["Take an action",["Do something that lives the line","Reflect on it"]],["Share",["Talk about what you learned","Make a keepsake"]]]},
+{n:"My Promise, My Faith Year 2",c:"Awards",img:"my-promise-my-faith-2",s:"Deepening faith & the Promise (Yr 2).",st:[["Revisit the Law",["Pick a new line","Talk about growth"]],["Explore a role model",["Learn about someone who lived it","Share their story"]],["Connect values",["Link the line to your beliefs","Discuss with family"]],["Take an action",["Do a values-based action","Reflect"]],["Share",["Make a keepsake","Share your learning"]]]},
+{n:"Safety Award",c:"Awards",img:"safety-award",s:"Learning to stay safe.",st:[["Learn safety rules",["Talk about troop safety","Learn meeting rules"]],["Practice safety",["Practice a fire drill","Buddy system"]],["Know what to do",["Who to ask for help","Emergency basics"]],["Make a safety plan",["Plan for an activity","Make a safety poster"]],["Share",["Teach a safety tip","Help keep the troop safe"]]]},
+{n:"Cookie Entrepreneur Family Year 1",c:"Awards",img:"cookie-entrepreneur-1",s:"Cookie business with family (Yr 1).",st:[["Set a goal",["Talk cookie goals with family","Make a plan"]],["Learn the 5 skills",["Goal setting, decisions, money","People & business ethics"]],["Practice selling",["Role-play with family","Practice your pitch"]],["Run your business",["Sell with family help","Track sales"]],["Reflect",["Celebrate your goal","Talk about what you learned"]]]},
+{n:"Cookie Entrepreneur Family Year 2",c:"Awards",img:"cookie-entrepreneur-2",s:"Cookie business with family (Yr 2).",st:[["Set a bigger goal",["Review last year","Set a new goal"]],["Grow your skills",["Improve your pitch","Try a new selling spot"]],["Plan with family",["Make a family plan","Divide the jobs"]],["Run your business",["Sell & track","Handle money"]],["Reflect",["Celebrate","Share a lesson learned"]]]},
+{n:"World Thinking Day Award",c:"Awards",img:"world-thinking-day",s:"Celebrating global sisterhood.",st:[["Learn about WTD",["What World Thinking Day is","Girl Scouts/Guides worldwide"]],["Explore a country",["Pick a country to learn about","Try its food/craft"]],["Learn the theme",["Learn this year's theme","Talk about it"]],["Take action",["Do a global-minded activity","Make a craft to share"]],["Celebrate",["Join a WTD event","Share what you learned"]]]},
+{n:"Brownie Wings",c:"Awards",img:"brownie-wings",s:"Earned when bridging from Brownie to Junior.",st:[["Reflect on being a Brownie",["Talk about your favorite Brownie memories","Share what you learned"]],["Look ahead to Juniors",["Learn what Juniors do","Talk about what's exciting"]],["Do a bridging activity",["Complete a Bridge to Junior step","Make a memory craft"]],["Help younger girls",["Share a skill with a Daisy/Brownie","Be a role model"]],["Celebrate",["Receive your wings at bridging","Celebrate with the troop"]]]},
+{n:"Bridge to Girl Scout Junior",c:"Awards",img:"bridge-to-junior",s:"Crossing over from Brownie to Junior.",st:[["Look back at Brownies",["Share favorite Brownie moments","Talk about how you grew"]],["Look ahead to Juniors",["Learn about Junior badges & the Bronze Award","Talk about what's next"]],["Do it together",["Plan the bridging ceremony as a troop","Practice the walk across the 'bridge'"]],["Pass it on",["Teach a younger Girl Scout something","Welcome new Brownies"]],["Bridge!",["Cross the bridge at the ceremony","Earn your Brownie Wings alongside it"]]]},
+];
+
+// This year's committed troop goals + already-earned badges (pre-seeded once)
+const GOALS = ["Safety Award","Brownie Wings","Bridge to Girl Scout Junior"];
+const PLANNED = ["Snacks","Brownie First Aid","Eco Friend","Cabin Camper","Shapes in Nature","Numbers in Nature","Design with Nature"];
+const ZOO = ["Shapes in Nature","Numbers in Nature","Design with Nature"];
+
+// Main activity per badge. ✓ = what our troop actually did; others are suggested ideas (edit anytime).
+const ACTIVITY={
+ "Art and Design":"✓ Paint class - canvas painting",
+ "Outdoor Art Creator":"✓ Nature-based art project",
+ "Create and Innovate":"✓ Design & build an invention",
+ "Dancer":"✓ Learned & performed a dance",
+ "My Great Day":"✓ Made a daily schedule/routine",
+ "My Cookie Customers":"✓ Cookie booth practice",
+ "Cookie Decision Maker":"✓ Set a troop cookie goal",
+ "Brownie Girl Scout Way":"✓ Traditions, songs & s'mores",
+ "Cookie Entrepreneur Family Year 1":"✓ Family cookie business",
+ "World Thinking Day Award":"✓ Explored a country + WTD event",
+ "Shapes in Nature":"KC Zoo workshop - shapes hunt",
+ "Numbers in Nature":"KC Zoo workshop - night hike + math",
+ "Design with Nature":"KC Zoo workshop - nature design",
+ "Snacks":"Make a healthy snack together",
+ "Brownie First Aid":"Build a mini first-aid kit + practice",
+ "Eco Friend":"Make a sit-upon (reuse materials)",
+ "Cabin Camper":"Campout at Abby's house (full troop)",
+ "Safety Award":"Practice a fire drill + safety plan",
+ "Brownie Wings":"Earned at bridging ceremony",
+ "Bridge to Girl Scout Junior":"Bridging ceremony - cross the bridge",
+ "Pets":"Make shelter toys/blankets to donate",
+ "Bugs":"Bug hunt with magnifiers + bug hotel",
+ "Me Time":"Make a glitter calm-down jar",
+ "Making Friends":"Friendship bracelets",
+ "Home Scientist":"Baking soda volcano / oobleck",
+ "Space Science Adventurer":"Moon-phase Oreo craft",
+ "Hiker":"Local nature trail hike",
+ "Letterboxer":"Carve a stamp + clue hunt",
+ "Fair Play":"Cooperative team games",
+ "Making Games":"Invent & teach a game",
+ "Senses":"Mystery touch/smell stations",
+ "Celebrating Community":"Meet a community helper",
+ "Democracy for Brownies":"Hold a troop vote/election",
+ "Household Elf":"Make a chore chart",
+ "Craft and Tinker":"Weaving or upcycle craft",
+ "My Family Story":"Family tree / scrapbook page",
+ "Painting":"Watercolor techniques",
+ "Snacks ":"",
+ "Budget Builder":"Savings jar + needs vs wants",
+ "My Own Budget":"Budget for a pretend outing",
+ "Digital Leadership":"Online kindness & safety poster",
+ "Budding Entrepreneur":"Design a mini product + ad",
+ "STEM Career Exploration":"Meet/interview a STEM worker",
+ "Outdoor Adventurer":"Try an outdoor sport",
+ "Brownie Trail Adventure":"Compass + nature trail activity",
+ "Brownie Snow or Climbing Adventure":"Climbing gym or snow day",
+ "Coding Basics":"Unplugged coding card game",
+ "Programming Robots":"Program a friend through a maze",
+ "Designing Robots":"Design a dream robot",
+ "Showcasing Robots":"Robot demo/presentation",
+ "Computer Expert":"Type a story / digital art",
+ "Digital Game Design":"Paper prototype a game",
+ "App Development":"Sketch a helpful app",
+ "Cybersecurity Basics":"Strong password activity",
+ "Cybersecurity Safeguards":"Safe-habits checklist",
+ "Cybersecurity Investigator":"Solve a digital mystery",
+ "Automotive Design":"Design a dream car",
+ "Automotive Engineering":"Build a rolling car",
+ "Automotive Manufacturing":"Team assembly-line challenge",
+ "Leap Bot Design Challenge":"Build a jumping bot",
+ "Fling Flyer Design Challenge":"Build a paper glider",
+ "Race Car Design Challenge":"Build & race a car",
+ "My Promise, My Faith Year 1":"Connect a Law line to your values",
+ "My Promise, My Faith Year 2":"Explore a role model",
+ "Cookie Entrepreneur Family Year 2":"Grow the family cookie biz"
+};
+const EARNED_DEFAULT = ["Outdoor Art Creator","Art and Design","Create and Innovate","Dancer","My Great Day","My Cookie Customers","Cookie Decision Maker","Brownie Girl Scout Way","Cookie Entrepreneur Family Year 1","World Thinking Day Award"];
+
+// Version-stamped seed: applies the troop's known earned badges once per version.
+// Preserves any manual toggles the user makes afterward.
+const SEED_VERSION='2026-08-25a';
+let earned = JSON.parse(localStorage.getItem('brownieEarned')||'{}');
+if(localStorage.getItem('brownieSeedVer')!==SEED_VERSION){
+  EARNED_DEFAULT.forEach(n=>earned[n]=true);
+  localStorage.setItem('brownieEarned',JSON.stringify(earned));
+  localStorage.setItem('brownieSeedVer',SEED_VERSION);
+}
+let activeCat="All", q="";
+const catsEl=document.getElementById('cats'), contentEl=document.getElementById('content'), countEl=document.getElementById('count'), searchEl=document.getElementById('search');
+
+const allChip=document.createElement('div');allChip.className='cat active';allChip.textContent='All';allChip.dataset.cat='All';catsEl.appendChild(allChip);
+CATS.forEach(c=>{const el=document.createElement('div');el.className='cat';el.dataset.cat=c;el.textContent=c;catsEl.appendChild(el);});
+catsEl.addEventListener('click',e=>{const c=e.target.closest('.cat');if(!c)return;document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active'));c.classList.add('active');activeCat=c.dataset.cat;render();});
+searchEl.addEventListener('input',()=>{q=searchEl.value.trim().toLowerCase();render();});
+
+function toggleEarned(name){earned[name]=!earned[name];localStorage.setItem('brownieEarned',JSON.stringify(earned));render();}
+function toggleOpen(el){el.classList.toggle('open');}
+
+function render(){
+  contentEl.innerHTML='';
+  let shown=0, earnedCount=Object.values(earned).filter(Boolean).length;
+  CATS.forEach(cat=>{
+    if(activeCat!=='All'&&activeCat!==cat)return;
+    const items=B.filter(b=>b.c===cat).filter(b=>{
+      if(!q)return true;
+      const hay=(b.n+' '+b.s+' '+b.st.map(s=>s[0]+' '+s[1].join(' ')).join(' ')).toLowerCase();
+      return hay.includes(q);
+    });
+    if(!items.length)return;
+    const block=document.createElement('div');block.className='catblock';
+    block.innerHTML=`<div class="cathead">${cat} <span style="font-weight:600;font-size:12px;opacity:.7">(${items.length})</span></div>`;
+    const grid=document.createElement('div');grid.className='grid';
+    items.forEach(b=>{
+      shown++;
+      const isGoal=GOALS.includes(b.n);
+      const isPlanned=PLANNED.includes(b.n);
+      const isZoo=ZOO.includes(b.n);
+      const card=document.createElement('div');
+      card.className='badge'+(earned[b.n]?' earned':'')+(isGoal?' goal':'')+(isPlanned?' planned':'');
+      const tag = isGoal?'<div class="goaltag">⭐ THIS YEAR</div>' : isPlanned?`<div class="plantag">${isZoo?'🦁 ZOO':'📅 THIS YEAR'}</div>`:'';
+      card.innerHTML=`
+        <div class="bhead">
+          <div class="earned-dot">${earned[b.n]?'✓':''}</div>
+          ${tag}
+          <img class="icon" src="${IC}${b.img}.png" alt="${b.n}" onerror="if(!this.dataset.r){this.dataset.r=1;const s=this.src;this.src='';setTimeout(()=>this.src=s+'?r='+Date.now(),300);}">
+          <div class="bt"><h3>${b.n}</h3></div>
+        </div>
+        <div class="body">
+          <div class="sub">${b.s}</div>
+          ${ACTIVITY[b.n]?`<div class="activity">🎯 <b>Main activity:</b> ${ACTIVITY[b.n]}</div>`:''}
+          <ol class="steps">${b.st.map(s=>`<li><b>${s[0]}</b><div class="ideas">${s[1].map(x=>`<span>${x}</span>`).join('')}</div></li>`).join('')}</ol>
+          <button class="earnbtn">${earned[b.n]?'✓ Earned (tap to undo)':'Mark as earned'}</button>
+        </div>`;
+      card.querySelector('.bhead').addEventListener('click',()=>toggleOpen(card));
+      card.querySelector('.earnbtn').addEventListener('click',ev=>{ev.stopPropagation();toggleEarned(b.n);});
+      card.querySelector('.earned-dot').addEventListener('click',ev=>{ev.stopPropagation();toggleEarned(b.n);});
+      grid.appendChild(card);
+    });
+    block.appendChild(grid);contentEl.appendChild(block);
+  });
+  countEl.innerHTML=`Showing ${shown} badge${shown!==1?'s':''} &bull; <span class="earnedcount">${earnedCount} earned</span>`;
+}
+render();
+</script>
+</body>
+</html>
